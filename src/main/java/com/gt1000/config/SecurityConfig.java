@@ -33,26 +33,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .formLogin()
-                .loginPage("/login")       // 사용자 정의 로그인 페이지
+//                .loginPage("/login")       // 사용자 정의 로그인 페이지
                 .defaultSuccessUrl("/main")     // 로그인 성공 후 이동 페이지
                 .failureUrl("/fail.html")       // 로그인 실패 후 이동 페이지
                 .usernameParameter("userId")    // 아이디 파라미터명 설정
                 .passwordParameter("password")  // 비밀번호 파라미터명 설정
                 .loginProcessingUrl("/login")   // 로그인 Form Action url
-                .successHandler(new AuthenticationSuccessHandler() {
-                    @Override
-                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                        System.out.println("authentication = " + authentication.getName());
-                        response.sendRedirect("/");
-                    }
-                })      // 로그인 성공 후 핸들러
-                .failureHandler(new AuthenticationFailureHandler() {
-                    @Override
-                    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-                        System.out.println("exception = " + exception.getMessage());
-                        response.sendRedirect("/login");
-                    }
-                })
+//                .successHandler(new AuthenticationSuccessHandler() {
+//                    @Override
+//                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+//                        System.out.println("authentication = " + authentication.getName());
+//                        response.sendRedirect("/main-test");
+//                    }
+//                })      // 로그인 성공 후 핸들러
+//                .failureHandler(new AuthenticationFailureHandler() {
+//                    @Override
+//                    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+//                        System.out.println("exception = " + exception.getMessage());
+//                        response.sendRedirect("/login");
+//                    }
+//                })
                 .permitAll();
     }
 }

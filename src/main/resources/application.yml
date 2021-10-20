@@ -16,12 +16,16 @@ spring:
       minimum-idle: 3
 
   jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+
     properties:
-      hibernate:
-        ddl-auto: validate
-        show_sql: true
-        format_sql: true
-        use_sql_comments: true
+      hibernate.show_sql: true
+      hibernate.use_sql_comments: true
+      hibernate.format_sql: true
+      hibernate.query.in_clause_parameter_padding: true
+    open-in-view: false
     database-platform: org.hibernate.dialect.MariaDB103Dialect
 
   security:
@@ -31,6 +35,8 @@ spring:
 
 logging:
   level:
+    root: info
     org.hibernate.type.descriptor.sql: trace
-    org.hibernate.SQL: debug
-    #org.springframework.security.web: trace
+    #org.hibernate.SQL: debug
+    #file:
+    #path: target/logs
