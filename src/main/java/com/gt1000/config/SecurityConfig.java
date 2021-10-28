@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -33,9 +34,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .anyRequest().authenticated();
+//        http
+//                .authorizeRequests()
+//                .antMatchers("/user").hasRole("USER")
+//                .antMatchers("/admin/**").access()
+//                .anyRequest().authenticated();
 
         http
                 .formLogin()
@@ -91,5 +94,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     }
                 })
                 .deleteCookies("JSESSIONID", "remember-me");     // 로그 아웃 쿠키 삭제
+
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)             // jwt, 세션 생성하지도, 존재 해도 사용하지 않음
+                .sessionFixation().changeSessionId()        // 세션 공유 공격 차단. 매번 새로운 새센 아이디를 생성하는 옵션
+                .maximumSessions(1)               // 최대 허용 개수, -1: 무제한 로그인 세션 허용
+                .maxSessionsPreventsLogin(true)     // 최대 허용 개수 초대 했을때,  true : 로그인을 못하게 함. false : 기존 세션 만료
+                .expiredUrl("/expired");
     }
 }
