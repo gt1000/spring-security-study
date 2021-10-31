@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,10 +13,15 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +47,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .anyRequest().authenticated();
 
         http
+                .authorizeRequests()
+                .antMatchers("/login").permitAll();
+
+        http
+                .csrf().disable();
+
+        http
                 .formLogin()
 //                .loginPage("/login")        // 사용자 정의 로그인 페이지
                 .defaultSuccessUrl("/main")     // 로그인 성공 후 이동 페이지
@@ -53,7 +66,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
                         // 로그인 성공 후 핸들러, 람다 처리 해도 될듯
                         log.info("------------------------------ userId = {}", authentication.getName());
-                        response.sendRedirect("/main");
+
+                        // 세션에 저장된 이전 요청 정보를 꺼내와서 이동 하게 함
+                        RequestCache requestCache = new HttpSessionRequestCache();
+                        SavedRequest savedRequest = requestCache.getRequest(request, response);
+                        String redirectUrl = savedRequest.getRedirectUrl();
+
+                        response.sendRedirect(redirectUrl);
                     }
                 })
                 .failureHandler(new AuthenticationFailureHandler() {
@@ -101,5 +120,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .maximumSessions(1)               // 최대 허용 개수, -1: 무제한 로그인 세션 허용
                 .maxSessionsPreventsLogin(true)     // 최대 허용 개수 초대 했을때,  true : 로그인을 못하게 함. false : 기존 세션 만료
                 .expiredUrl("/expired");
+
+        http
+                .
+                exceptionHandling()
+                .authenticationEntryPoint(new AuthenticationEntryPoint() {
+                    @Override
+                    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+                        // 스프링 시큐리티가 아닌 우리가 만든 url
+                        response.sendRedirect("/login");
+                    }
+                })
+                .accessDeniedHandler(new AccessDeniedHandler() {
+                    @Override
+                    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+                        // 스프링 시큐리티가 아닌 우리가 만든 url
+                        response.sendRedirect("/denied");
+                    }
+                });
     }
 }
